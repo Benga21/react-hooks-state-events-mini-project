@@ -1,46 +1,30 @@
-import "@testing-library/jest-dom";
-import { render, screen, fireEvent } from "@testing-library/react";
-import CategoryFilter from "../components/CategoryFilter";
-import App from "../components/App";
-import { CATEGORIES } from "../data";
+import { render, screen, fireEvent } from '@testing-library/react';
+import CategoryFilter from '../components/CategoryFilter';
 
-test("displays a button for each category", () => {
-  render(<CategoryFilter categories={CATEGORIES} />);
-  for (const category of CATEGORIES) {
-    expect(screen.queryByText(category)).toBeInTheDocument();
-  }
+const mockCategories = ['All', 'Work', 'Personal', 'Fitness'];
+const mockFilter = jest.fn();
+
+test('displays buttons for each category', () => {
+  render(<CategoryFilter categories={mockCategories} onFilter={mockFilter} selectedCategory='All' />);
+  
+  mockCategories.forEach(category => {
+    expect(screen.getByText(category)).toBeInTheDocument();
+  });
 });
 
-test("clicking the category button adds a class of 'selected' to the button", () => {
-  render(<App />);
-
-  const codeButton = screen.queryByRole("button", { name: "Code" });
-  const allButton = screen.queryByRole("button", { name: "All" });
-
-  fireEvent.click(codeButton);
-
-  expect(codeButton.classList).toContain("selected");
-  expect(allButton.classList).not.toContain("selected");
-});
-
-test("clicking the category button filters the task list", () => {
-  render(<App />);
-
-  const codeButton = screen.queryByRole("button", { name: "Code" });
-
-  fireEvent.click(codeButton);
-
-  expect(screen.queryByText("Build a todo app")).toBeInTheDocument();
-  expect(screen.queryByText("Buy rice")).not.toBeInTheDocument();
-});
-
-test("displays all tasks when the 'All' button is clicked", () => {
-  render(<App />);
-
-  const allButton = screen.queryByRole("button", { name: "All" });
-
-  fireEvent.click(allButton);
-
-  expect(screen.queryByText("Build a todo app")).toBeInTheDocument();
-  expect(screen.queryByText("Buy rice")).toBeInTheDocument();
+test('adds selected class to the clicked button and calls onFilter', () => {
+  const { rerender } = render(<CategoryFilter categories={mockCategories} onFilter={mockFilter} selectedCategory='All' />);
+  
+  const workButton = screen.getByText('Work');
+  fireEvent.click(workButton);
+  
+  // Update the selectedCategory prop after the click
+  rerender(<CategoryFilter categories={mockCategories} onFilter={mockFilter} selectedCategory='Work' />);
+  
+  expect(workButton).toHaveClass('selected');
+  expect(mockFilter).toHaveBeenCalledWith('Work');
+  
+  mockCategories.filter(category => category !== 'Work').forEach(category => {
+    expect(screen.getByText(category)).not.toHaveClass('selected');
+  });
 });

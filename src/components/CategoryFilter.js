@@ -1,12 +1,28 @@
-import React from "react";
+import React from 'react';
+import PropTypes from 'prop-types';
+function CategoryFilter({ categories, onFilter, selectedCategory }) {
+  if (!categories || categories.length === 0) {
+    return null; 
+  }
 
-function CategoryFilter() {
   return (
-    <div className="categories">
-      <h5>Category filters</h5>
-      {/* render <button> elements for each category here */}
+    <div>
+      {categories.map((category) => (
+        <button
+          key={category}
+          className={selectedCategory === category ? 'selected' : ''}
+          onClick={() => onFilter(category)}
+        >
+          {category}
+        </button>
+      ))}
     </div>
   );
 }
+CategoryFilter.propTypes = {
+  categories: PropTypes.arrayOf(PropTypes.string).isRequired,
+  onFilter: PropTypes.func.isRequired,
+  selectedCategory: PropTypes.string.isRequired,
+};
 
 export default CategoryFilter;

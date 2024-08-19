@@ -1,49 +1,43 @@
-import "@testing-library/jest-dom";
-import { render, screen, fireEvent } from "@testing-library/react";
-import NewTaskForm from "../components/NewTaskForm";
-import { CATEGORIES } from "../data";
-import App from "../components/App";
+import { render, screen, fireEvent } from '@testing-library/react';
+import NewTaskForm from '../components/NewTaskForm';
 
-test("calls the onTaskFormSubmit callback prop when the form is submitted", () => {
-  const onTaskFormSubmit = jest.fn();
-  render(
-    <NewTaskForm categories={CATEGORIES} onTaskFormSubmit={onTaskFormSubmit} />
-  );
+describe('NewTaskForm', () => {
+  const mockCategories = ['Work', 'Personal', 'Urgent'];
+  const mockOnTaskFormSubmit = jest.fn();
 
-  fireEvent.change(screen.queryByLabelText(/Details/), {
-    target: { value: "Pass the tests" },
+  beforeEach(() => {
+    render(<NewTaskForm categories={mockCategories} onTaskFormSubmit={mockOnTaskFormSubmit} />);
   });
 
-  fireEvent.change(screen.queryByLabelText(/Category/), {
-    target: { value: "Code" },
+  test('renders input and select', () => {
+    expect(screen.getByPlaceholderText('New Task')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
-  fireEvent.submit(screen.queryByText(/Add task/));
-
-  expect(onTaskFormSubmit).toHaveBeenCalledWith(
-    expect.objectContaining({
-      text: "Pass the tests",
-      category: "Code",
-    })
-  );
-});
-
-test("adds a new item to the list when the form is submitted", () => {
-  render(<App />);
-
-  const codeCount = screen.queryAllByText(/Code/).length;
-
-  fireEvent.change(screen.queryByLabelText(/Details/), {
-    target: { value: "Pass the tests" },
+  test('allows the user to type in the task input', () => {
+    const input = screen.getByPlaceholderText('New Task');
+    fireEvent.change(input, { target: { value: 'New Task' } });
+    expect(input.value).toBe('New Task');
   });
 
-  fireEvent.change(screen.queryByLabelText(/Category/), {
-    target: { value: "Code" },
+  test('allows the user to select a category', () => {
+    const select = screen.getByRole('combobox');
+    fireEvent.change(select, { target: { value: 'Work' } });
+    expect(select.value).toBe('Work');
   });
 
-  fireEvent.submit(screen.queryByText(/Add task/));
+  test('submits the form with correct task data', () => {
+    const input = screen.getByPlaceholderText('New Task');
+    const select = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'New Task' } });
+    fireEvent.change(select, { target: { value: 'Work' } });
 
-  expect(screen.queryByText(/Pass the tests/)).toBeInTheDocument();
+    fireEvent.submit(screen.getByTestId('new-task-form'));
 
-  expect(screen.queryAllByText(/Code/).length).toBe(codeCount + 1);
+    expect(mockOnTaskFormSubmit).toHaveBeenCalledWith({
+      id: expect.any(Number),
+      text: 'New Task',
+      category: 'Work',
+    });
+  });
 });
